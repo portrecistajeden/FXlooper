@@ -8,10 +8,12 @@
 #define RELAY1 9
 #define RELAY2 10
 #define numberOfEffects 2
+#define numberOfBanks 2
 
 int ledState = LOW;
 unsigned long previousMillis = 0;
 const long interval = 1000;
+bool banks[numberOfBanks][numberOfEffects];
 
 class Switch{
   private:
@@ -77,28 +79,6 @@ class Led{
     }
 };
 
-class Bank{
-  private:
-    bool effects[numberOfEffects];
-  public:
-    Bank(){
-      init();
-      }
-
-    void init(){
-      for(int i=0; i<numberOfEffects; i++) {
-        effects[i] = 0;
-        }
-    }
-
-    void moduloEffect(int index){
-      effects[index-1] = !(effects[index-1]);
-    }  
-
-    bool getArray(){
-      return this->effects;
-    }
-};
 
 void ledBlink() {
   unsigned long currentMillis = millis();
@@ -129,14 +109,11 @@ Led editLED(EDIT_DIODE);
 Relay relay1(RELAY1);
 Relay relay2(RELAY2);
 
-Bank bank1();
 void setup() {
 
   Serial.begin(9600);
-  
-  
-Serial.println(bank1.getArray());
 
+  
   editLED.on();
   delay(1000);
   editLED.off();
