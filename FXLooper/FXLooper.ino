@@ -10,6 +10,7 @@
 #define numberOfEffects 2
 #define numberOfBanks 2
 
+int currentBank = 1;
 int ledState = LOW;
 unsigned long previousMillis = 0;
 const long interval = 1000;
@@ -43,7 +44,7 @@ class Relay{
     }
 
     void init(){
-      pinMode(pin, INPUT);
+      pinMode(pin, OUTPUT);
       high();
     }
 
@@ -54,6 +55,7 @@ class Relay{
     void low(){
       digitalWrite(pin, LOW);
     }
+
 };
 
 class Led{
@@ -76,6 +78,11 @@ class Led{
 
     void off(){
       digitalWrite(pin, LOW);
+    }
+    
+    void modulo(){
+      if (digitalRead(pin) == 1) off();
+      else on();
     }
 };
 
@@ -109,10 +116,39 @@ Led editLED(EDIT_DIODE);
 Relay relay1(RELAY1);
 Relay relay2(RELAY2);
 
+Relay relayArray[2]={relay1, relay2};
+Led ledArray[2] = {bankLED1, bankLED2};
+
+void enableBank(int number){
+  currentBank = number;
+    
+  for(int i=0;i<numberOfEffects;i++){
+    Serial.println(banks[currentBank][i]);
+    if( banks[currentBank][i] == 1) relayArray[i].low();
+    else relayArray[i].high();
+  }
+  
+  for(int i=0; i<2; i++){
+    ledArray[i].off();
+  }
+  ledArray[number].on();
+}
+
 void setup() {
 
   Serial.begin(9600);
 
+  for(int i=0; i<numberOfBanks; i++){
+    for(int j=0; j<numberOfEffects; j++){
+      banks[i][j]=0;
+    }
+  }
+  
+  banks[0][1] = 1;
+  banks[1][0] = 1;
+  banks[1][1] = 1;
+
+  enableBank(0);
   
   editLED.on();
   delay(1000);
@@ -120,11 +156,8 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  Serial.println(bankSW1.getState());
-  if (bankSW1.getState() == HIGH) {
-    relay1.low();
-  }
-  else relay1.high();
+  
+  if (bankSW1.getState() == HIGH && currentBank!=0) enableBank(0);
+  else if (bankSW2.getState() == HIGH && currentBank!=1) enableBank(1);
   
 }
