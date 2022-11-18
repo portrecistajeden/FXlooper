@@ -9,12 +9,20 @@
 #define RELAY2 10
 #define numberOfEffects 2
 #define numberOfBanks 2
+#define LONGPRESS 3000
 
 int currentBank = 1;
 int ledState = LOW;
 unsigned long previousMillis = 0;
 const long interval = 1000;
 bool banks[numberOfBanks][numberOfEffects];
+
+int lastState = LOW;
+int currentState;
+unsigned long pressedTime = 0;
+unsigned long timeVal = 0;
+
+bool editMode = 0;
 
 class Switch{
   private:
@@ -87,22 +95,14 @@ class Led{
 };
 
 
-void ledBlink() {
+void ledBlink(Led led) {
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= interval) {
     // save the last time you blinked the LED
     previousMillis = currentMillis;
 
-    // if the LED is off turn it on and vice-versa:
-    if (ledState == LOW) {
-      ledState = HIGH;
-    } else {
-      ledState = LOW;
-    }
-
-    // set the LED with the ledState of the variable:
-    digitalWrite(EDIT_DIODE, ledState);
+    led.modulo();
   }
 }
 
@@ -121,17 +121,38 @@ Led ledArray[2] = {bankLED1, bankLED2};
 
 void enableBank(int number){
   currentBank = number;
-    
+  
   for(int i=0;i<numberOfEffects;i++){
-    Serial.println(banks[currentBank][i]);
     if( banks[currentBank][i] == 1) relayArray[i].low();
     else relayArray[i].high();
   }
-  
+ 
+    
   for(int i=0; i<2; i++){
     ledArray[i].off();
   }
   ledArray[number].on();
+}
+
+
+void checkForLongPress(Switch button){
+  currentState = button.getState();
+  if(!currentState) lastState = LOW;
+  else{
+      if(lastState==LOW && currentState==HIGH){
+      pressedTime=millis();
+      lastState=HIGH;
+    }
+    else if(lastState==HIGH && currentState==HIGH){
+      timeVal=millis();
+      Serial.println(timeVal - pressedTime);
+      if (timeVal - pressedTime > 3000){
+        editLED.off();
+        editMode = !editMode;
+        pressedTime=timeVal;
+      }
+    }
+  }
 }
 
 void setup() {
@@ -150,14 +171,17 @@ void setup() {
 
   enableBank(0);
   
-  editLED.on();
-  delay(1000);
-  editLED.off();
 }
 
 void loop() {
   
-  if (bankSW1.getState() == HIGH && currentBank!=0) enableBank(0);
-  else if (bankSW2.getState() == HIGH && currentBank!=1) enableBank(1);
+  checkForLongPress(fxSW1);
   
+  if(editMode){
+    ledBlink(editLED);
+  }
+  else{
+    if (bankSW1.getState() == HIGH && currentBank!=0) enableBank(0);
+    else if (bankSW2.getState() == HIGH && currentBank!=1) enableBank(1);     
+  } 
 }
