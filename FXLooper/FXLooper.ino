@@ -1,14 +1,33 @@
-#define BANK_SW1 2
-#define BANK_SW2 3
-#define FX_SW1 4
-#define FX_SW2 5
-#define BANK_DIODE1 6
-#define BANK_DIODE2 7
-#define EDIT_DIODE 8
-#define RELAY1 9
-#define RELAY2 10
+#define BANK_SW1 9
+#define BANK_SW2 10
+#define BANK_SW3 11
+#define BANK_SW4 12
+#define MUTE_SW 13
+
+#define FX_SW1 22
+#define FX_SW2 23
+#define FX_SW3 24
+#define FX_SW4 25
+#define FX_SW5 26
+#define FX_SW6 27
+#define FX_SW7 28
+#define FX_SW8 29
+#define FX_SW9 30
+
+#define BANK_DIODE1 2
+#define BANK_DIODE2 3
+#define BANK_DIODE3 4
+#define BANK_DIODE4 5
+
+#define EDIT_DIODE 32
+
+#define RELAY1 40
+#define RELAY2 41
+#define RELAY3 42
+#define RELAY4 43
+
 #define numberOfEffects 2
-#define numberOfBanks 2
+#define numberOfBanks 5
 #define LONGPRESS 3000
 
 int currentBank = 1;
@@ -108,6 +127,7 @@ void ledBlink(Led led) {
 
 Switch bankSW1(BANK_SW1);
 Switch bankSW2(BANK_SW2);
+Switch muteSW(MUTE_SW);
 Switch fxSW1(FX_SW1);
 Switch fxSW2(FX_SW2);
 Led bankLED1(BANK_DIODE1);
@@ -155,6 +175,13 @@ void checkForLongPress(Switch button){
   }
 }
 
+void editBank(bool bank){
+  while(1){
+    Serial.println("while");
+    if(fxSW1.getState()) return;
+  }
+}
+
 void setup() {
 
   Serial.begin(9600);
@@ -168,20 +195,27 @@ void setup() {
   banks[0][1] = 1;
   banks[1][0] = 1;
   banks[1][1] = 1;
+  banks[4][1] = 0;
+  banks[4][0] = 0;
 
   enableBank(0);
   
 }
 
 void loop() {
-  
+
   checkForLongPress(fxSW1);
   
   if(editMode){
     ledBlink(editLED);
+    if(bankSW1.getState()){
+      delay(100);
+      editBank(0);
+    }
   }
   else{
-    if (bankSW1.getState() == HIGH && currentBank!=0) enableBank(0);
+    if (muteSW.getState() == HIGH && currentBank!=4) enableBank(4);
+    else if (bankSW1.getState() == HIGH && currentBank!=0) enableBank(0);
     else if (bankSW2.getState() == HIGH && currentBank!=1) enableBank(1);     
   } 
 }
