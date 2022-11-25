@@ -21,16 +21,28 @@
 
 #define EDIT_DIODE 32
 
-#define RELAY1 40
-#define RELAY2 41
-#define RELAY3 42
-#define RELAY4 43
+#define RELAY1 38
+#define RELAY2 39
+#define RELAY3 40
+#define RELAY4 41
+#define RELAY5 42
+#define RELAY6 43
+#define RELAY7 44
+#define RELAY8 45
+#define RELAY9 46
+#define RELAY10 47
+#define RELAY11 48
+#define RELAY12 49
+#define RELAY13 50
+#define RELAY14 51
+#define RELAY15 52
+#define RELAY16 53
 
-#define numberOfEffects 2
+#define numberOfEffects 8
 #define numberOfBanks 5
 #define LONGPRESS 3000
 
-int currentBank = 1;
+int currentBank = 0;
 int ledState = LOW;
 unsigned long previousMillis = 0;
 const long interval = 1000;
@@ -114,6 +126,46 @@ class Led{
 };
 
 
+
+
+Switch bankSW1(BANK_SW1);
+Switch bankSW2(BANK_SW2);
+Switch muteSW(MUTE_SW);
+
+Switch fxSW1(FX_SW1);
+Switch fxSW2(FX_SW2);
+Switch fxSW3(FX_SW3);
+Switch fxSW4(FX_SW4);
+Switch fxSW5(FX_SW5);
+Switch fxSW6(FX_SW6);
+Switch fxSW7(FX_SW7);
+Switch fxSW8(FX_SW8);
+
+Led bankLED1(BANK_DIODE1);
+Led bankLED2(BANK_DIODE2);
+Led editLED(EDIT_DIODE);
+
+Relay relay1(RELAY1);
+Relay relay2(RELAY2);
+Relay relay3(RELAY3);
+Relay relay4(RELAY4);
+Relay relay5(RELAY5);
+Relay relay6(RELAY6);
+Relay relay7(RELAY7);
+Relay relay8(RELAY8);
+Relay relay9(RELAY9);
+Relay relay10(RELAY10);
+Relay relay11(RELAY11);
+Relay relay12(RELAY12);
+Relay relay13(RELAY13);
+Relay relay14(RELAY14);
+Relay relay15(RELAY15);
+Relay relay16(RELAY16);
+
+Relay relayArray[16]={relay1, relay2, relay3, relay4, relay5, relay6, relay7, relay8, 
+                      relay9, relay10, relay11, relay12, relay13, relay14, relay15, relay16};
+Led ledArray[2] = {bankLED1, bankLED2};
+
 void ledBlink(Led led) {
   unsigned long currentMillis = millis();
 
@@ -122,38 +174,33 @@ void ledBlink(Led led) {
     previousMillis = currentMillis;
 
     led.modulo();
+    Serial.println("blink");
   }
 }
-
-Switch bankSW1(BANK_SW1);
-Switch bankSW2(BANK_SW2);
-Switch muteSW(MUTE_SW);
-Switch fxSW1(FX_SW1);
-Switch fxSW2(FX_SW2);
-Led bankLED1(BANK_DIODE1);
-Led bankLED2(BANK_DIODE2);
-Led editLED(EDIT_DIODE);
-Relay relay1(RELAY1);
-Relay relay2(RELAY2);
-
-Relay relayArray[2]={relay1, relay2};
-Led ledArray[2] = {bankLED1, bankLED2};
 
 void enableBank(int number){
   currentBank = number;
   
   for(int i=0;i<numberOfEffects;i++){
-    if( banks[currentBank][i] == 1) relayArray[i].low();
-    else relayArray[i].high();
+    if( banks[currentBank][i] == 1) {
+      relayArray[2*i].low();
+      relayArray[(2*i)+1].low();
+    }
+    else {
+      relayArray[2*i].high();
+      relayArray[(2*i)+1].high();
+    }
   }
  
     
+
+}
+
+void ledsOff(){
   for(int i=0; i<2; i++){
     ledArray[i].off();
   }
-  ledArray[number].on();
 }
-
 
 void checkForLongPress(Switch button){
   currentState = button.getState();
@@ -175,10 +222,27 @@ void checkForLongPress(Switch button){
   }
 }
 
-void editBank(bool bank){
+void editBank(){
   while(1){
-    Serial.println("while");
-    if(fxSW1.getState()) return;
+    
+    ledBlink(ledArray[currentBank]);
+
+    if(fxSW2.getState()) {
+      banks[currentBank][0] = !banks[currentBank][0];
+      enableBank(currentBank);
+      delay(300);
+    }
+    else if(fxSW3.getState()) {
+      banks[currentBank][1] = !banks[currentBank][1];
+      enableBank(currentBank);
+      delay(300);
+    }
+    
+    if(fxSW1.getState()) {
+      ledsOff();
+      ledArray[currentBank].on();
+      return;
+    }
   }
 }
 
@@ -198,7 +262,9 @@ void setup() {
   banks[4][1] = 0;
   banks[4][0] = 0;
 
-  enableBank(0);
+  enableBank(currentBank);
+  ledsOff();
+  ledArray[currentBank].on();
   
 }
 
@@ -207,15 +273,35 @@ void loop() {
   checkForLongPress(fxSW1);
   
   if(editMode){
-    ledBlink(editLED);
+    editLED.on();
     if(bankSW1.getState()){
+      if(currentBank != 0) enableBank(0);
       delay(100);
-      editBank(0);
+      ledsOff();
+      editBank();
+    }
+    else if(bankSW2.getState()){
+      if(currentBank != 1) enableBank(1);
+      delay(100);
+      ledsOff();
+      editBank();
     }
   }
   else{
-    if (muteSW.getState() == HIGH && currentBank!=4) enableBank(4);
-    else if (bankSW1.getState() == HIGH && currentBank!=0) enableBank(0);
-    else if (bankSW2.getState() == HIGH && currentBank!=1) enableBank(1);     
+    if (muteSW.getState() == HIGH && currentBank!=4) {
+      enableBank(4);
+      ledsOff();
+      ledArray[currentBank].on();
+    }
+    else if (bankSW1.getState() == HIGH && currentBank!=0) {
+      enableBank(0);
+      ledsOff();
+      ledArray[currentBank].on();
+    }
+    else if (bankSW2.getState() == HIGH && currentBank!=1) {
+      enableBank(1);     
+      ledsOff();
+      ledArray[currentBank].on();
+    }
   } 
 }
