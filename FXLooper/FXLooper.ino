@@ -125,11 +125,10 @@ class Led{
     }
 };
 
-
-
-
 Switch bankSW1(BANK_SW1);
 Switch bankSW2(BANK_SW2);
+Switch bankSW3(BANK_SW3);
+Switch bankSW4(BANK_SW4);
 Switch muteSW(MUTE_SW);
 
 Switch fxSW1(FX_SW1);
@@ -140,9 +139,12 @@ Switch fxSW5(FX_SW5);
 Switch fxSW6(FX_SW6);
 Switch fxSW7(FX_SW7);
 Switch fxSW8(FX_SW8);
+Switch fxSW9(FX_SW9);
 
 Led bankLED1(BANK_DIODE1);
 Led bankLED2(BANK_DIODE2);
+Led bankLED3(BANK_DIODE3);
+Led bankLED4(BANK_DIODE4);
 Led editLED(EDIT_DIODE);
 
 Relay relay1(RELAY1);
@@ -164,7 +166,7 @@ Relay relay16(RELAY16);
 
 Relay relayArray[16]={relay1, relay2, relay3, relay4, relay5, relay6, relay7, relay8, 
                       relay9, relay10, relay11, relay12, relay13, relay14, relay15, relay16};
-Led ledArray[2] = {bankLED1, bankLED2};
+Led ledArray[4] = {bankLED1, bankLED2, bankLED3, bankLED4};
 
 void ledBlink(Led led) {
   unsigned long currentMillis = millis();
@@ -197,7 +199,7 @@ void enableBank(int number){
 }
 
 void ledsOff(){
-  for(int i=0; i<2; i++){
+  for(int i=0; i<4; i++){
     ledArray[i].off();
   }
 }
@@ -237,10 +239,44 @@ void editBank(){
       enableBank(currentBank);
       delay(300);
     }
+    else if(fxSW4.getState()) {
+      banks[currentBank][2] = !banks[currentBank][2];
+      enableBank(currentBank);
+      delay(300);
+    }
+    else if(fxSW5.getState()) {
+      banks[currentBank][3] = !banks[currentBank][3];
+      enableBank(currentBank);
+      delay(300);
+    }
+    else if(fxSW6.getState()) {
+      banks[currentBank][4] = !banks[currentBank][4];
+      enableBank(currentBank);
+      delay(300);
+    }
+    else if(fxSW7.getState()) {
+      banks[currentBank][5] = !banks[currentBank][5];
+      enableBank(currentBank);
+      delay(300);
+    }
+    else if(fxSW8.getState()) {
+      banks[currentBank][6] = !banks[currentBank][6];
+      enableBank(currentBank);
+      delay(300);
+    }
+    else if(fxSW9.getState()) {
+      banks[currentBank][7] = !banks[currentBank][7];
+      enableBank(currentBank);
+      delay(300);
+    }
     
     if(fxSW1.getState()) {
       ledsOff();
       ledArray[currentBank].on();
+      for (int j=0; j<numberOfEffects; j++){
+        if(banks[currentBank][j]) Serial.print("1 ");
+        else Serial.print("0 ");
+      }
       return;
     }
   }
@@ -252,16 +288,10 @@ void setup() {
 
   for(int i=0; i<numberOfBanks; i++){
     for(int j=0; j<numberOfEffects; j++){
-      banks[i][j]=0;
+      banks[i][j]=1;
     }
   }
-  
-  banks[0][1] = 1;
-  banks[1][0] = 1;
-  banks[1][1] = 1;
-  banks[4][1] = 0;
-  banks[4][0] = 0;
-
+ 
   enableBank(currentBank);
   ledsOff();
   ledArray[currentBank].on();
@@ -286,6 +316,18 @@ void loop() {
       ledsOff();
       editBank();
     }
+    else if(bankSW3.getState()){
+      if(currentBank != 2) enableBank(2);
+      delay(100);
+      ledsOff();
+      editBank();
+    }
+    else if(bankSW4.getState()){
+      if(currentBank != 3) enableBank(3);
+      delay(100);
+      ledsOff();
+      editBank();
+    }
   }
   else{
     if (muteSW.getState() == HIGH && currentBank!=4) {
@@ -300,6 +342,16 @@ void loop() {
     }
     else if (bankSW2.getState() == HIGH && currentBank!=1) {
       enableBank(1);     
+      ledsOff();
+      ledArray[currentBank].on();
+    }
+    else if (bankSW3.getState() == HIGH && currentBank!=2) {
+      enableBank(2);
+      ledsOff();
+      ledArray[currentBank].on();
+    }
+    else if (bankSW4.getState() == HIGH && currentBank!=3) {
+      enableBank(3);     
       ledsOff();
       ledArray[currentBank].on();
     }
