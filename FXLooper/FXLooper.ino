@@ -18,6 +18,7 @@
 #define BANK_DIODE2 3
 #define BANK_DIODE3 4
 #define BANK_DIODE4 5
+#define MUTE_DIODE 6
 
 #define EDIT_DIODE 32
 
@@ -146,6 +147,7 @@ Led bankLED2(BANK_DIODE2);
 Led bankLED3(BANK_DIODE3);
 Led bankLED4(BANK_DIODE4);
 Led editLED(EDIT_DIODE);
+Led muteLED(MUTE_DIODE);
 
 Relay relay1(RELAY1);
 Relay relay2(RELAY2);
@@ -166,7 +168,7 @@ Relay relay16(RELAY16);
 
 Relay relayArray[16]={relay1, relay2, relay3, relay4, relay5, relay6, relay7, relay8, 
                       relay9, relay10, relay11, relay12, relay13, relay14, relay15, relay16};
-Led ledArray[4] = {bankLED1, bankLED2, bankLED3, bankLED4};
+Led ledArray[5] = {bankLED1, bankLED2, bankLED3, bankLED4, muteLED};
 
 void ledBlink(Led led) {
   unsigned long currentMillis = millis();
@@ -193,13 +195,16 @@ void enableBank(int number){
       relayArray[(2*i)+1].high();
     }
   }
- 
-    
+ for (int j=0; j<numberOfEffects; j++){
+        if(banks[currentBank][j]) Serial.print("1 ");
+        else Serial.print("0 ");
+      }
+    Serial.println("");
 
 }
 
 void ledsOff(){
-  for(int i=0; i<4; i++){
+  for(int i=0; i<sizeof(ledArray); i++){
     ledArray[i].off();
   }
 }
@@ -273,10 +278,7 @@ void editBank(){
     if(fxSW1.getState()) {
       ledsOff();
       ledArray[currentBank].on();
-      for (int j=0; j<numberOfEffects; j++){
-        if(banks[currentBank][j]) Serial.print("1 ");
-        else Serial.print("0 ");
-      }
+      
       return;
     }
   }
@@ -291,7 +293,8 @@ void setup() {
       banks[i][j]=1;
     }
   }
- 
+ for(int j=0; j<numberOfEffects; j++) banks[4][j]=0;
+      
   enableBank(currentBank);
   ledsOff();
   ledArray[currentBank].on();
