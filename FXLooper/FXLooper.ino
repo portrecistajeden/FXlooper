@@ -1,3 +1,5 @@
+#include <EEPROM.h>
+
 #define BANK_SW1 9
 #define BANK_SW2 10
 #define BANK_SW3 11
@@ -47,7 +49,7 @@ int currentBank = 0;
 int ledState = LOW;
 unsigned long previousMillis = 0;
 const long interval = 1000;
-bool banks[numberOfBanks][numberOfEffects];
+int banks[numberOfBanks][numberOfEffects];
 
 int lastState = LOW;
 int currentState;
@@ -195,11 +197,6 @@ void enableBank(int number){
       relayArray[(2*i)+1].high();
     }
   }
- for (int j=0; j<numberOfEffects; j++){
-        if(banks[currentBank][j]) Serial.print("1 ");
-        else Serial.print("0 ");
-      }
-    Serial.println("");
 
 }
 
@@ -278,8 +275,31 @@ void editBank(){
     if(fxSW1.getState()) {
       ledsOff();
       ledArray[currentBank].on();
+      saveBanksToEEPROM();
       
       return;
+    }
+  }
+}
+
+void saveBanksToEEPROM(){  
+  int ind = 0;
+  
+  for(int i=0; i<numberOfBanks; i++){
+    for(int j=0; j<numberOfEffects; j++){
+      EEPROM.update(ind, banks[i][j]);
+      ind++;
+    }
+  }
+}
+
+void readBanksFromEEPROM(){
+  int ind = 0;
+
+  for(int i=0; i<numberOfBanks; i++){
+    for(int j=0; j<numberOfEffects; j++){
+      banks[i][j] = EEPROM.read(ind);
+      ind++;
     }
   }
 }
@@ -288,12 +308,15 @@ void setup() {
 
   Serial.begin(9600);
 
-  for(int i=0; i<numberOfBanks; i++){
-    for(int j=0; j<numberOfEffects; j++){
-      banks[i][j]=1;
-    }
-  }
- for(int j=0; j<numberOfEffects; j++) banks[4][j]=0;
+//  for(int i=0; i<numberOfBanks; i++){
+//    for(int j=0; j<numberOfEffects; j++){
+//      banks[i][j]=1;
+//    }
+//  }
+// for(int j=0; j<numberOfEffects; j++) banks[4][j]=0;
+  
+  //saveBanksToEEPROM();
+  readBanksFromEEPROM();
       
   enableBank(currentBank);
   ledsOff();
