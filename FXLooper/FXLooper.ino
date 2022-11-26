@@ -22,6 +22,15 @@
 #define BANK_DIODE4 5
 #define MUTE_DIODE 6
 
+#define FX_DIODE1 8
+#define FX_DIODE2 7
+#define FX_DIODE3 31
+#define FX_DIODE4 33
+#define FX_DIODE5 34
+#define FX_DIODE6 35
+#define FX_DIODE7 36
+#define FX_DIODE8 37
+
 #define EDIT_DIODE 32
 
 #define RELAY1 38
@@ -128,6 +137,8 @@ class Led{
     }
 };
 
+
+
 Switch bankSW1(BANK_SW1);
 Switch bankSW2(BANK_SW2);
 Switch bankSW3(BANK_SW3);
@@ -151,6 +162,15 @@ Led bankLED4(BANK_DIODE4);
 Led editLED(EDIT_DIODE);
 Led muteLED(MUTE_DIODE);
 
+Led fxLED1(FX_DIODE1);
+Led fxLED2(FX_DIODE2);
+Led fxLED3(FX_DIODE3);
+Led fxLED4(FX_DIODE4);
+Led fxLED5(FX_DIODE5);
+Led fxLED6(FX_DIODE6);
+Led fxLED7(FX_DIODE7);
+Led fxLED8(FX_DIODE8);
+
 Relay relay1(RELAY1);
 Relay relay2(RELAY2);
 Relay relay3(RELAY3);
@@ -171,6 +191,7 @@ Relay relay16(RELAY16);
 Relay relayArray[16]={relay1, relay2, relay3, relay4, relay5, relay6, relay7, relay8, 
                       relay9, relay10, relay11, relay12, relay13, relay14, relay15, relay16};
 Led ledArray[5] = {bankLED1, bankLED2, bankLED3, bankLED4, muteLED};
+Led fxLedArray[8] = {fxLED1, fxLED2, fxLED3, fxLED4, fxLED5, fxLED6, fxLED7, fxLED8};
 
 void ledBlink(Led led) {
   unsigned long currentMillis = millis();
@@ -191,10 +212,12 @@ void enableBank(int number){
     if( banks[currentBank][i] == 1) {
       relayArray[2*i].low();
       relayArray[(2*i)+1].low();
+      fxLedArray[i].on();
     }
     else {
       relayArray[2*i].high();
       relayArray[(2*i)+1].high();
+      fxLedArray[i].off();
     }
   }
 
